@@ -14,7 +14,7 @@ const Map = () => {
   const map = React.useRef();
 
     const getMapLocation = () => {
-        const { availWidth, availHeight } = window.screen;
+        const { availWidth } = window.screen;
         let center = { lat: 42.56, lng: -71.17 }; //desktop default
         let zoom = 14.5; //desktop default
         if(availWidth < 400) {

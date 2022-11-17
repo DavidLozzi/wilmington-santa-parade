@@ -38,3 +38,10 @@
     background-image: linear-gradient(to top, #138123, #27d850);
     background-color: #34cd26;
 }
+
+@media screen and (min-width: 600px) {
+    #menu button {
+        padding: 15px 20px;
+        font-size: 18px;
+    }
+}

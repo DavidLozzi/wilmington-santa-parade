@@ -10,6 +10,22 @@
         width: 40vw;
     }
 }
+
+@media screen and (min-width: 600px) {
+    @keyframes moveLogo {
+        0% {
+            padding-left: 25vw;
+            padding-top: 20vh;
+            width: 50vw;
+        }
+        100% {
+            padding-top: 60px;
+            padding-left: 10px;
+            width: 20vw;
+        }
+    }
+}
+
 #logo {
     position: absolute;
     z-index: 10;
@@ -19,4 +35,12 @@
     padding-left: 5vw;
     padding-top: 20vh;
     width: 90vw;
+}
+
+@media screen and (min-width: 600px) {
+    #logo {
+        padding-left: 25vw;
+        padding-top: 20vh;
+        width: 50vw;
+    }
 }

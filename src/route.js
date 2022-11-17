@@ -1,4 +1,4 @@
-export default [{
+const route = [{
     lat: 42.550357, lng: -71.170464
 },
 {
@@ -860,3 +860,5 @@ export default [{
     lat: 42.550168, lng: -71.170603
 }
 ]
+
+export default route;
