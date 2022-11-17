@@ -17,7 +17,7 @@ const Map = () => {
         const { availWidth } = window.screen;
         let center = { lat: 42.56, lng: -71.17 }; //desktop default
         let zoom = 14.5; //desktop default
-        if(availWidth < 400) {
+        if(availWidth < 500) {
             center = { lat: 42.57, lng: -71.18 };
             zoom = 13;
         }
