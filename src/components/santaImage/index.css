@@ -1,0 +1,22 @@
+@keyframes moveLogo {
+    0% {
+        padding-left: 5vw;
+        padding-top: 20vh;
+        width: 90vw;
+    }
+    100% {
+        padding-top: 60px;
+        padding-left: 10px;
+        width: 40vw;
+    }
+}
+#logo {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    animation: moveLogo 3s 2s forwards;
+    padding-left: 5vw;
+    padding-top: 20vh;
+    width: 90vw;
+}
