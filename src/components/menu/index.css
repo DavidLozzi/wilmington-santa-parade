@@ -9,7 +9,7 @@
 
 #menu {
     position: absolute;
-    top: 60px;
+    top: 10px;
     right: 10px;
     z-index: 10;
 }
@@ -32,6 +32,7 @@
     -webkit-box-shadow: 0px 2px 7px 0 #2E0505;
     background-image: linear-gradient(to top, #ad1c20, #FA272E);
     background-color: #ED252C;
+    cursor: pointer;
 }
 
 #menu #donate {

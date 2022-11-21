@@ -1,0 +1,38 @@
+#login {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#login h2 {
+    margin-bottom: 20px;
+}
+
+#login input {
+    font-size: 24px;
+    padding: 10px;
+    text-align: center;
+    width: 50%;
+}
+
+#login button {
+    margin: 10px;
+    border: none;
+    color: #FFFFFF;
+    border-radius: 10px 10px 10px 10px;
+    -webkit-border-radius: 10px 10px 10px 10px;
+    -moz-border-radius: 10px 10px 10px 10px;
+    font-family: Georgia;
+    width: auto;
+    height: auto;
+    font-size: 20px;
+    padding: 12px;
+    background-color: #ED252C;
+}
+
+#login #message {
+    color: #ED252C;
+    font-weight: bold;
+    margin-top: 10px;
+}

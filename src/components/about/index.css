@@ -1,0 +1,17 @@
+#about {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    padding: 20px;
+    height: 100%;
+    overflow: scroll;
+}
+
+#about p {
+    line-height: 28px;
+}
+
+#about img {
+    width: 30px;
+}

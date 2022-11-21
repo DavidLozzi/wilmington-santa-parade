@@ -1,0 +1,49 @@
+#track {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#track h3 {
+    margin-bottom: 20px;
+}
+
+#track button {
+    margin: 10px;
+    border: none;
+    color: #FFFFFF;
+    border-radius: 10px 10px 10px 10px;
+    -webkit-border-radius: 10px 10px 10px 10px;
+    -moz-border-radius: 10px 10px 10px 10px;
+    font-family: Georgia;
+    width: auto;
+    height: auto;
+    font-size: 20px;
+    padding: 12px;
+    background-color: #ED252C;
+}
+#track button:disabled {
+    color: #ddd;
+    background-color: #9c272b;
+}
+
+#track #photo {
+    margin-top: 40px;
+}
+
+#track #message {
+    color: #ED252C;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#track #list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#track .location {
+    font-size: 14px;
+}
