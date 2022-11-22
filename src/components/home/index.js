@@ -20,10 +20,10 @@ function Home({ Page }) {
   }, [Page])
   return (
     <>
-    {ModalComponent && <div id="modal">
+    {ModalComponent && <div id="modalwrapper"><div id="modal">
       <button title="close modal" onClick={closeModal} id="close">X</button>
     {ModalComponent}
-    </div>}
+    </div></div>}
     <SantaImage />
     <Menu />
     <Map />

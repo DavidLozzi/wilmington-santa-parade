@@ -22,12 +22,13 @@ const About = () => {
         children who are physically unable to see Santa due to an illness or physical handicap. Santa and 
         his helpers will stop off at a few houses this year and come to the door to greet a few Wilmington 
         children. If you are a parent of a child who is ill or physically unable to come out to see Santa, 
-        please fill out <a href="https://linkprotect.cudasvc.com/url?a=https%3a%2f%2fforms.office.com%2fr%2f6NRHreW3JH&c=E,1,9-Y_u22b_Mv4sA6x_4WhJ6PBdlgwhmLbDpR0sA8GUNnIASdygQI6RWypyLmwn0i3kQxAEeXMb2zJuSZDqni5bnLn4XmurkRs7Tdxv9Kth9eCtgRsmOw,&typo=1" target="_blank"  rel="noreferrer" alt="link to the form">this form</a>
-        and we will help organize a quick visit. We stress this is not for healthy kids!!! If you want Santa
+        please fill out <a href="https://linkprotect.cudasvc.com/url?a=https%3a%2f%2fforms.office.com%2fr%2f6NRHreW3JH&c=E,1,9-Y_u22b_Mv4sA6x_4WhJ6PBdlgwhmLbDpR0sA8GUNnIASdygQI6RWypyLmwn0i3kQxAEeXMb2zJuSZDqni5bnLn4XmurkRs7Tdxv9Kth9eCtgRsmOw,&typo=1" target="_blank"  rel="noreferrer" alt="link to the form">this form</a> and
+        we will help organize a quick visit. We stress this is not for healthy kids!!! If you want Santa
         to provide a gift, there is an option for you to drop off a gift prior to the event which we will give to the child. </p>
 
-        <h3>Fine print</h3>
-        <p>The Wilmington Santa Parade is organized by and does this and that and other things....</p>
+        <h3>About the Elves</h3>
+        <p>The Wilmington Santa Parade is a fun event for all! Big thanks to the Wilmington Fire Department for 
+            hosting our parade, Santa and Mrs. Claus. Join us on <a href="https://www.facebook.com/profile.php?id=100064915801501" alt="Link to Facebook" target="_blank" rel="noreferrer">Facebook</a></p>
         <p>This site was created with eggnog and Christmas cheer by <a href="https://davidlozzi.com/my-apps/" alt="Link to the creator's site" target="_blank" rel="noreferrer">David Lozzi</a>.</p>
     </div>
 }
