@@ -32,7 +32,17 @@
         },
         "AppId": {
           "Ref": "appId"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "user:Application",
+            "Value": "wilmingtonsantaparad"
+          },
+          {
+            "Key": "user:Stack",
+            "Value": "dev"
+          }
+        ]
       }
     }
   }

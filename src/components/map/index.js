@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-import { API, graphqlOperation, SortDirection } from 'aws-amplify';
+import { API, graphqlOperation } from 'aws-amplify';
 import route from "../../route";
-import { listSantaLocations } from "../../graphql/queries";
+import { byDate } from "../../graphql/queries";
 import SantaHead from '../../assets/santa_head.png';
+import Past from '../../assets/past.png';
 import TargetSanta from '../../assets/target_santa.png';
 import './index.css';
 
@@ -16,6 +17,7 @@ const markers = []
 const Map = () => {
   const [santaProgress, setSantaProgress] = useState([]);
   const map = React.useRef();
+  const santaPath = React.useRef();
 
   const getMapLocation = () => {
       const { availWidth } = window.screen;
@@ -31,9 +33,14 @@ const Map = () => {
 
   const getSantaLocation = async () => {
     try {
-      const santaData = await API.graphql(graphqlOperation(listSantaLocations, { limit: 20, SortDirection: SortDirection.DESCENDING }));
-      const santaLocations = santaData.data.listSantaLocations.items;
-      setSantaProgress(santaLocations.sort((a,b) => a.date < b.date ? 1 : -1));
+      const options = { 
+        sort: 'yes',
+        sortDirection: 'DESC',
+        limit: 10
+    }
+      const santaData = await API.graphql(graphqlOperation(byDate, options));
+      const santaLocations = santaData.data.byDate.items;
+      setSantaProgress(santaLocations);
       console.log('got', santaLocations.length, 'locations for Santa 🎅')
     } catch(ex) {
       console.error('getSantaLocation', ex);
@@ -47,33 +54,35 @@ const Map = () => {
 
   React.useEffect(() => {
 		const drawSantasPath = () => {
-			// const routeMap = new google.maps.Polyline({
-			//   path: santaProgress,
-			//   geodesic: true,
-			//   strokeColor: "#000",
-			//   strokeOpacity: 1.0,
-			//   strokeWeight: 10
-			// })
-			// routeMap.setMap(map.current)
+      santaPath.current?.setMap(null)
+			const routeMap = new google.maps.Polyline({
+			  path: santaProgress,
+			  geodesic: true,
+			  strokeColor: "#ED252C",
+			  strokeOpacity: 1.0,
+			  strokeWeight: 6
+			})
+      santaPath.current = routeMap
+			routeMap.setMap(map.current)
 	
-			const lastStops = 20
-			const start = santaProgress[0]
-			const end = santaProgress[lastStops]
-			var display = new google.maps.DirectionsRenderer({ suppressMarkers: true });
-			var services = new google.maps.DirectionsService();
-			display.setMap(map.current);
-			const waypoints = santaProgress.filter((s,i) => i > 0 && i < lastStops).map(s => ({ location: new google.maps.LatLng(s.lat, s.lng)}))
-			var request ={
-					origin : start,
-					destination: end,
-					travelMode: 'DRIVING',
-					waypoints
-			};
-			services.route(request,function(result,status){
-				if(status === 'OK'){
-						display.setDirections(result);
-				}
-			});
+			// const lastStops = 20
+			// const start = santaProgress[0]
+			// const end = santaProgress[lastStops]
+			// var display = new google.maps.DirectionsRenderer({ suppressMarkers: true });
+			// var services = new google.maps.DirectionsService();
+			// display.setMap(map.current);
+			// const waypoints = santaProgress.filter((s,i) => i > 0 && i < lastStops).map(s => ({ location: new google.maps.LatLng(s.lat, s.lng)}))
+			// var request ={
+			// 		origin : start,
+			// 		destination: end,
+			// 		travelMode: 'DRIVING',
+			// 		waypoints
+			// };
+			// services.route(request,function(result,status){
+			// 	if(status === 'OK'){
+			// 			display.setDirections(result);
+			// 	}
+			// });
 	
 		}
 
@@ -83,10 +92,11 @@ const Map = () => {
         position: new google.maps.LatLng(santa.lat, santa.lng),
         icon: SantaHead,
         map: map.current,
-        title: new Date(santa.date).toLocaleTimeString()
+        title: new Date(santa.date).toLocaleTimeString(),
+        style: { width: '100px'}
       });
       const santaInfo = new google.maps.InfoWindow({
-        content: `<div style='color:#000'>Last updated ${new Date(santa.date).toLocaleTimeString()}</div>`
+        content: `<div style='color:#000'>Updated ${new Date(santa.date).toLocaleTimeString()}</div>`
       })
       marker.addListener('click', () => {
         santaInfo.open({
@@ -101,7 +111,33 @@ const Map = () => {
 			} else {
 				markers.push(marker)
 			}
-			console.log(markers)
+
+      // points for where he was
+      for(let i = 1; i < santaProgress.length; i+=2) {
+        const arrow = santaProgress[i]
+        const marker = new google.maps.Marker({
+          position: new google.maps.LatLng(arrow.lat, arrow.lng),
+          icon: Past,
+          map: map.current,
+          title: new Date(arrow.date).toLocaleTimeString()
+        });
+        const santaInfo = new google.maps.InfoWindow({
+          content: `<div style='color:#000'>Santa was here ${new Date(arrow.date).toLocaleTimeString()}</div>`
+        })
+        marker.addListener('click', () => {
+          santaInfo.open({
+            anchor: marker,
+            map: map.current,
+            shouldFocus: false
+          })
+        })
+        if(markers.length > i) {
+          markers[i].setMap(null) // deletes other marker
+          markers[i] = marker
+        } else {
+          markers.push(marker)
+        }
+      }
 
       drawSantasPath()
     }
@@ -121,7 +157,7 @@ const Map = () => {
       const routeMap = new google.maps.Polyline({
         path: route,
         geodesic: true,
-        strokeColor: "#ED252C",
+        strokeColor: "#00F",
         strokeOpacity: 1.0,
         strokeWeight: 3,
       })
@@ -136,7 +172,7 @@ const Map = () => {
   return (
     <>
       <div style={{ height: '100vh', width: '100vw' }} id="map" />
-      { santaProgress?.length > 0 && <div id="status">Santa's last location updated: {new Date(santaProgress[0].date).toLocaleTimeString()}</div> }
+      { santaProgress?.length > 0 && <div id="status">Santa's last location updated: {new Date().toLocaleTimeString()}</div> }
 			<button id="targetSanta" onClick={goToSanta}><img src={TargetSanta} alt="Find santa on the map"  /></button>
     </>
   );

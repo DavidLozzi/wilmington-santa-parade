@@ -8,6 +8,7 @@ export const getSantaLocation = /* GraphQL */ `
       lat
       lng
       date
+      sort
       createdAt
       updatedAt
     }
@@ -25,6 +26,7 @@ export const listSantaLocations = /* GraphQL */ `
         lat
         lng
         date
+        sort
         createdAt
         updatedAt
       }
@@ -32,17 +34,17 @@ export const listSantaLocations = /* GraphQL */ `
     }
   }
 `;
-export const santaLocationsByIdAndDate = /* GraphQL */ `
-  query SantaLocationsByIdAndDate(
-    $id: ID!
+export const byDate = /* GraphQL */ `
+  query ByDate(
+    $sort: String!
     $date: ModelStringKeyConditionInput
     $sortDirection: ModelSortDirection
     $filter: ModelSantaLocationFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    santaLocationsByIdAndDate(
-      id: $id
+    byDate(
+      sort: $sort
       date: $date
       sortDirection: $sortDirection
       filter: $filter
@@ -54,6 +56,7 @@ export const santaLocationsByIdAndDate = /* GraphQL */ `
         lat
         lng
         date
+        sort
         createdAt
         updatedAt
       }

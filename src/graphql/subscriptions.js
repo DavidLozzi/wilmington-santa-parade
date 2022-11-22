@@ -10,6 +10,7 @@ export const onCreateSantaLocation = /* GraphQL */ `
       lat
       lng
       date
+      sort
       createdAt
       updatedAt
     }
@@ -24,6 +25,7 @@ export const onUpdateSantaLocation = /* GraphQL */ `
       lat
       lng
       date
+      sort
       createdAt
       updatedAt
     }
@@ -38,6 +40,7 @@ export const onDeleteSantaLocation = /* GraphQL */ `
       lat
       lng
       date
+      sort
       createdAt
       updatedAt
     }

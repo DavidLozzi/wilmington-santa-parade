@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { API, graphqlOperation } from 'aws-amplify';
 import { createSantaLocation } from '../../graphql/mutations';
-import { santaLocationsByIdAndDate } from '../../graphql/queries';
+import { byDate } from '../../graphql/queries';
 import NoSleep from '../../NoSleep';
 import './index.css';
 
@@ -27,12 +27,24 @@ const Track = () => {
 
     const getAllLocations = async () => {
         try {
-            const santaData = await API.graphql(graphqlOperation(santaLocationsByIdAndDate,{ lat: 'gt 0', sortDirection: 'DESC' }));
-            const santaLocations = santaData.data.listSantaLocations?.items;
-            setLocations(santaLocations?.sort((a,b) => a.date < b.date ? 1 : -1).slice(0,10) || []);
+            const options = { 
+                sort: 'yes',
+                sortDirection: 'DESC',
+                limit: 10
+            }
+            
+            const santaData = await API.graphql(graphqlOperation(byDate, options));
+            const santaLocations = santaData.data.byDate?.items;
+            setLocations(santaLocations || []);
             console.log('got', santaLocations.length, 'locations for Santa 🎅')
+            setMessage('')
         } catch(ex) {
             console.error('getSantaLocation', ex);
+            if(ex?.errors?.length > 0) {
+                setMessage(`Oops an error occurred retrieving your locations. ${ex.errors[0].message}`)
+            } else {
+                setMessage('An error occurred.')
+            }
         }
     }
 
@@ -62,7 +74,7 @@ const Track = () => {
             getAllLocations()
             setMessage('Location saved!')
             setStatus(STATUS.DONE)
-            setTimeout(() => setMessage(''), 2000)
+            setTimeout(() => setMessage(''), 5000)
         } catch(ex) {
             getAllLocations()
             setMessage('Roast my chestnuts, there was an error.')
@@ -83,7 +95,7 @@ const Track = () => {
             setAutoTrack(TRACK.ENABLED);
             autoTrackInterval.current = setInterval(() => {
                 getLocation()
-            }, 5 * 1000)
+            }, 30 * 1000)
         }
     }
 

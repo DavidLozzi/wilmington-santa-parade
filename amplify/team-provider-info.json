@@ -12,9 +12,6 @@
       "AmplifyAppId": "ditvk4w1wchkx"
     },
     "categories": {
-      "api": {
-        "wilmingtonsantaparad": {}
-      },
       "auth": {
         "wilmingtonsantaparad644333a2": {}
       },
@@ -28,6 +25,9 @@
         "santaphotos": {}
       },
       "analytics": {
+        "wilmingtonsantaparad": {}
+      },
+      "api": {
         "wilmingtonsantaparad": {}
       }
     }
