@@ -1,0 +1,16 @@
+{
+  "resourceName": "santaphotos",
+  "policyUUID": "84fd483a",
+  "bucketName": "wilmingtonsantaphotos",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "READ"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

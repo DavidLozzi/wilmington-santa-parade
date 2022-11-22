@@ -1,0 +1,35 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-wilmingtonsantaparad-dev-155137-authRole",
+      "UnauthRoleArn": "arn:aws:iam::300420735591:role/amplify-wilmingtonsantaparad-dev-155137-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::300420735591:role/amplify-wilmingtonsantaparad-dev-155137-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-wilmingtonsantaparad-dev-155137-deployment",
+      "UnauthRoleName": "amplify-wilmingtonsantaparad-dev-155137-unauthRole",
+      "StackName": "amplify-wilmingtonsantaparad-dev-155137",
+      "StackId": "arn:aws:cloudformation:us-east-2:300420735591:stack/amplify-wilmingtonsantaparad-dev-155137/a1bcc7c0-66b9-11ed-8f28-0abbd50bf248",
+      "AmplifyAppId": "ditvk4w1wchkx"
+    },
+    "categories": {
+      "auth": {
+        "wilmingtonsantaparad644333a2": {}
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "ditvk4w1wchkx",
+          "type": "manual"
+        }
+      },
+      "storage": {
+        "santaphotos": {}
+      },
+      "analytics": {
+        "wilmingtonsantaparad": {}
+      },
+      "api": {
+        "wilmingtonsantaparad": {}
+      }
+    }
+  }
+}
