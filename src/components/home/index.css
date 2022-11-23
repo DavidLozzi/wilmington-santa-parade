@@ -4,6 +4,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     z-index: 20;
     display: flex;
     justify-content: center;
@@ -36,6 +37,8 @@
     cursor: pointer;
     align-self: flex-end;
     margin: 10px;
+    height: 35px;
+    width: 35px;
 }
 
 

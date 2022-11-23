@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { API, graphqlOperation } from 'aws-amplify';
+import { Analytics } from '../../analytics';
 import route from "../../route";
 import { byDate } from "../../graphql/queries";
 import SantaHead from '../../assets/santa_head.png';
@@ -44,10 +45,12 @@ const Map = () => {
       console.log('got', santaLocations.length, 'locations for Santa 🎅')
     } catch(ex) {
       console.error('getSantaLocation', ex);
+      Analytics.record({ name: 'Get Santa Error', attributes: { ex } })
     }
   }
 
 	const goToSanta = () => {
+    Analytics.record({ name: 'Locate Santa Button'})
 		const santa = santaProgress[0]
 		map.current.setCenter(santa)
 	}
@@ -162,18 +165,18 @@ const Map = () => {
         strokeWeight: 3,
       })
       routeMap.setMap(map.current)
+      getSantaLocation();
+      setInterval(getSantaLocation,30 * 1000)
     });
 
-    getSantaLocation();
 
-    setInterval(getSantaLocation,30 * 1000)
   }, [])
 
   return (
     <>
-      <div style={{ height: '100vh', width: '100vw' }} id="map" />
-      { santaProgress?.length > 0 && <div id="status">Santa's last location updated: {new Date().toLocaleTimeString()}</div> }
-			<button id="targetSanta" onClick={goToSanta}><img src={TargetSanta} alt="Find santa on the map"  /></button>
+      <div id="map" ref={map} />
+      { santaProgress?.length > 0 && <><div id="status">Santa's last location updated: {new Date().toLocaleTimeString()}</div> 
+			<button id="targetSanta" onClick={goToSanta}><img src={TargetSanta} alt="Find santa on the map"  /></button></>}
     </>
   );
 }

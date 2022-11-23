@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { API, graphqlOperation } from 'aws-amplify';
+import { Analytics } from '../../analytics';
 import { createSantaLocation } from '../../graphql/mutations';
 import { byDate } from '../../graphql/queries';
-import NoSleep from '../../NoSleep';
 import './index.css';
 
 const STATUS = {
@@ -14,9 +14,6 @@ const TRACK = {
     ENABLED: 'Stop Auto Tracking',
     DISABLED: 'Enable Auto Tracking'
 }
-
-var noSleep = new NoSleep();
-noSleep.enable();
 
 const Track = () => {
     const [message, setMessage] = useState('');
@@ -40,6 +37,7 @@ const Track = () => {
             setMessage('')
         } catch(ex) {
             console.error('getSantaLocation', ex);
+            Analytics.record({ name: 'get locations error', attributes: { ex } })
             if(ex?.errors?.length > 0) {
                 setMessage(`Oops an error occurred retrieving your locations. ${ex.errors[0].message}`)
             } else {
@@ -76,6 +74,7 @@ const Track = () => {
             setStatus(STATUS.DONE)
             setTimeout(() => setMessage(''), 5000)
         } catch(ex) {
+            Analytics.record({ name: 'get position error', attributes: { ex } })
             getAllLocations()
             setMessage('Roast my chestnuts, there was an error.')
             console.error(ex)
@@ -84,10 +83,12 @@ const Track = () => {
     }
 
     const track_click = () => {
+        Analytics.record({ name: 'Track clicked'})
         getLocation()
     }
 
     const autotrack_click = () => {
+        Analytics.record({ name: 'Autotrack clicked'})
         if(autoTrackInterval.current){
             clearInterval(autoTrackInterval.current);
             setAutoTrack(TRACK.DISABLED);

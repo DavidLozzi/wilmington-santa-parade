@@ -57,10 +57,5 @@
       "dependsOn": []
     }
   },
-  "analytics": {
-    "wilmingtonsantaparad": {
-      "service": "Pinpoint",
-      "providerPlugin": "awscloudformation"
-    }
-  }
+  "analytics": {}
 }
