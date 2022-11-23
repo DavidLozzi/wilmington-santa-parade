@@ -1,4 +1,5 @@
 
+import { Link } from 'react-router-dom';
 import TargetSanta from '../../assets/target_santa.png';
 import './index.css';
 
@@ -8,6 +9,7 @@ const About = () => {
         <h1>The Wilmington Santa Parade</h1>
         <p><strong>Sunday, December 4th: </strong>The Santa Parade tours much of Wilmington, MA through all of Sunday, Dec 4th.
             Use this site to track the current location of Santa on December 4th.</p>
+        <p><strong>Please donate!</strong> <Link to="/donate">Learn more here</Link></p>
         <p><strong>Can't find Santa?</strong> Try the Locate Santa button at the lower right, that should take you to his last known location.
         <img src={TargetSanta} alt="Locate Santa example" /></p>
         

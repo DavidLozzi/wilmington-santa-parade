@@ -12,6 +12,7 @@ const Menu = () => {
     }
     const goToDonate = () => {
         Analytics.record({name: 'Open Donate'})
+        navigate("/donate")
 
     }
     return <div id="menu">

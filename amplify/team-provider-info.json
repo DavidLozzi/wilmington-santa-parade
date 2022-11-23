@@ -28,5 +28,35 @@
         "wilmingtonsantaparad": {}
       }
     }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-wilmingtonsantaparad-prod-134626-authRole",
+      "UnauthRoleArn": "arn:aws:iam::300420735591:role/amplify-wilmingtonsantaparad-prod-134626-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::300420735591:role/amplify-wilmingtonsantaparad-prod-134626-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-wilmingtonsantaparad-prod-134626-deployment",
+      "UnauthRoleName": "amplify-wilmingtonsantaparad-prod-134626-unauthRole",
+      "StackName": "amplify-wilmingtonsantaparad-prod-134626",
+      "StackId": "arn:aws:cloudformation:us-east-2:300420735591:stack/amplify-wilmingtonsantaparad-prod-134626/22fdb1b0-6b5f-11ed-8c2d-0ace7357f858",
+      "AmplifyAppId": "ditvk4w1wchkx"
+    },
+    "categories": {
+      "auth": {
+        "wilmingtonsantaparad644333a2": {}
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "ditvk4w1wchkx",
+          "type": "manual"
+        }
+      },
+      "api": {
+        "wilmingtonsantaparad": {}
+      },
+      "storage": {
+        "santaphotos": {}
+      }
+    }
   }
 }

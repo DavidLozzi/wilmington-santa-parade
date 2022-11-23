@@ -115,7 +115,7 @@ const Map = () => {
 				markers.push(marker)
 			}
 
-      // points for where he was
+      // markers for where he was
       for(let i = 1; i < santaProgress.length; i+=2) {
         const arrow = santaProgress[i]
         const marker = new google.maps.Marker({

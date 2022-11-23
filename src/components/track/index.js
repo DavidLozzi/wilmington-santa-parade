@@ -92,8 +92,10 @@ const Track = () => {
         if(autoTrackInterval.current){
             clearInterval(autoTrackInterval.current);
             setAutoTrack(TRACK.DISABLED);
+            autoTrackInterval.current = null;
         } else {
             setAutoTrack(TRACK.ENABLED);
+            getLocation()
             autoTrackInterval.current = setInterval(() => {
                 getLocation()
             }, 30 * 1000)
