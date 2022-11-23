@@ -5,6 +5,7 @@ import SantaImage from '../santaImage';
 import Menu from '../menu';
 
 import './index.css';
+import { Analytics } from '../../analytics';
 
 function Home({ Page }) {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ function Home({ Page }) {
   const closeModal = () => {
     setModalComponent(null)
     navigate('/')
+    Analytics.record({ name: 'Close Modal'})
   }
 
   useEffect(() => {

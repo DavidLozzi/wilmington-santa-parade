@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Auth } from 'aws-amplify';
+import { Analytics } from '../../analytics';
 import { STATUS } from '../location';
 import './index.css';
 
@@ -7,8 +8,9 @@ const Login = ({ setStatus }) => {
     const [password, setPassword] = useState('')
     const [message, setMessage] = useState('')
     const signIn = async () => {
+        Analytics.record({name: 'Login'})
         try {
-            const user = await Auth.signIn('santa', password)
+            await Auth.signIn('santa', password)
             setStatus(STATUS.LOGGED_IN)
         } catch (ex) {
             console.error(ex)
@@ -16,6 +18,7 @@ const Login = ({ setStatus }) => {
             if(ex.toString().indexOf('Incorrect username or password') > -1) {
                 setMessage('Incorrect password.')
             }
+            Analytics.record({ name: 'Login fail', attributes: { ex } })
         }
     }
     return ( <div id="login">
