@@ -1,17 +1,43 @@
 
+import { useEffect, useState } from 'react';
+import { API, graphqlOperation } from 'aws-amplify';
 import { Link } from 'react-router-dom';
+import { byDate } from "../../graphql/queries";
 import TargetSanta from '../../assets/target_santa.png';
+import Legend from '../../assets/legend.png';
+import Start from '../../assets/start.png';
 import './index.css';
 
 const About = () => {
+    const [showTrackSanta, setShowTrackSanta] = useState(false);
+
+    useEffect(() => {
+        const getSanta = async () => {
+            const options = { 
+                sort: 'yes',
+                sortDirection: 'DESC',
+                limit: 1
+            }
+            const santaData = await API.graphql(graphqlOperation(byDate, options));
+            const santaLocations = santaData.data.byDate.items;
+            if(santaLocations.length > 0) {
+                setShowTrackSanta(true)
+            }
+        }
+        getSanta()
+    }, [])
 
     return <div id="about">
         <h1>The Wilmington Santa Parade</h1>
         <p><strong>Sunday, December 4th: </strong>The Santa Parade tours much of Wilmington, MA through all of Sunday, Dec 4th.
             Use this site to track the current location of Santa on December 4th.</p>
+        <p><strong>Santa's Routes</strong> <img src={Legend} alt="Legend of color routes" className="legend" /> weave like tinsel throughout Wilmington. Even Santa needs a break every once in a while.
+        His route is broken into 6 parts, color-code here. These times are estimates. The  <img src={Start} alt="Start icon" style={{width: '20px'}} /> indicates the start of the route.</p>
         <p><strong>Please donate!</strong> <Link to="/donate">Learn more here</Link></p>
-        <p><strong>Can't find Santa?</strong> Try the Locate Santa button at the lower right, that should take you to his last known location.
-        <img src={TargetSanta} alt="Locate Santa example" /></p>
+        {showTrackSanta && 
+            <p><strong>Can't find Santa?</strong> Try the Locate Santa button at the lower right, that should take you to his last known location.
+            <img src={TargetSanta} alt="Locate Santa example" /></p>
+        }
         
         <h2>More Santa</h2>
         <p><strong>Saturday, December 3rd: </strong>Santa will be making 2 stops around town. They will be at 

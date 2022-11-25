@@ -22,3 +22,11 @@
 #about img {
     width: 30px;
 }
+
+#about .legend {
+    width: 100px;
+    float: right;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}

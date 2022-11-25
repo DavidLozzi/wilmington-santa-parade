@@ -2,9 +2,15 @@ import React, { useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { API, graphqlOperation } from 'aws-amplify';
 import { Analytics } from '../../analytics';
-import route from "../../route";
+import r0900 from "../../routes/0900";
+import r1030 from "../../routes/1030";
+import r1115 from "../../routes/1115";
+import r1255 from "../../routes/1255";
+import r1340 from "../../routes/1340";
+import r1430 from "../../routes/1430";
 import { byDate } from "../../graphql/queries";
 import SantaHead from '../../assets/santa_head.png';
+import Start from '../../assets/start.png';
 import Past from '../../assets/past.png';
 import TargetSanta from '../../assets/target_santa.png';
 import './index.css';
@@ -23,10 +29,10 @@ const Map = () => {
   const getMapLocation = () => {
       const { availWidth } = window.screen;
       let center = { lat: 42.56, lng: -71.17 }; //desktop default
-      let zoom = 14.5; //desktop default
+      let zoom = 13.4; //desktop default
       if(availWidth < 500) {
-          center = { lat: 42.565, lng: -71.18 };
-          zoom = 13;
+          center = { lat: 42.562, lng: -71.17 };
+          zoom = 12.8;
       }
 
       return [center, zoom];
@@ -55,6 +61,27 @@ const Map = () => {
 		map.current.setCenter(santa)
 	}
 
+  const drawMarker = (latLng, icon, _map, title, content, zIndex = 5) => {
+    const marker = new google.maps.Marker({
+      position: new google.maps.LatLng(latLng.lat, latLng.lng),
+      icon,
+      map: _map,
+      title,
+      zIndex
+    });
+    const info = new google.maps.InfoWindow({
+      content
+    })
+    marker.addListener('click', () => {
+      info.open({
+        anchor: marker,
+        map: _map,
+        shouldFocus: false
+      })
+    })
+    return marker;
+  }
+
   React.useEffect(() => {
 		const drawSantasPath = () => {
       santaPath.current?.setMap(null)
@@ -62,7 +89,7 @@ const Map = () => {
 			  path: santaProgress,
 			  geodesic: true,
 			  strokeColor: "#ED252C",
-			  strokeOpacity: 1.0,
+			  strokeOpacity: 0.6,
 			  strokeWeight: 6
 			})
       santaPath.current = routeMap
@@ -91,23 +118,8 @@ const Map = () => {
 
     if (santaProgress?.length > 0) {
       const santa = santaProgress[0]
-      const marker = new google.maps.Marker({
-        position: new google.maps.LatLng(santa.lat, santa.lng),
-        icon: SantaHead,
-        map: map.current,
-        title: new Date(santa.date).toLocaleTimeString(),
-        style: { width: '100px'}
-      });
-      const santaInfo = new google.maps.InfoWindow({
-        content: `<div style='color:#000'>Updated ${new Date(santa.date).toLocaleTimeString()}</div>`
-      })
-      marker.addListener('click', () => {
-        santaInfo.open({
-          anchor: marker,
-          map: map.current,
-          shouldFocus: false
-        })
-      })
+      const marker = drawMarker(santa, SantaHead, map.current, new Date(santa.date).toLocaleTimeString(), `<div style='color:#000'>Updated ${new Date(santa.date).toLocaleTimeString()}</div>`, 8)
+
 			if(markers.length > 0) {
 				markers[0].setMap(null) // deletes other marker
 				markers[0] = marker
@@ -118,22 +130,8 @@ const Map = () => {
       // markers for where he was
       for(let i = 1; i < santaProgress.length; i+=2) {
         const arrow = santaProgress[i]
-        const marker = new google.maps.Marker({
-          position: new google.maps.LatLng(arrow.lat, arrow.lng),
-          icon: Past,
-          map: map.current,
-          title: new Date(arrow.date).toLocaleTimeString()
-        });
-        const santaInfo = new google.maps.InfoWindow({
-          content: `<div style='color:#000'>Santa was here ${new Date(arrow.date).toLocaleTimeString()}</div>`
-        })
-        marker.addListener('click', () => {
-          santaInfo.open({
-            anchor: marker,
-            map: map.current,
-            shouldFocus: false
-          })
-        })
+        const marker = drawMarker(arrow, Past, map.current, new Date(arrow.date).toLocaleTimeString(),  `<div style='color:#000'>Santa was here ${new Date(arrow.date).toLocaleTimeString()}</div>`)
+
         if(markers.length > i) {
           markers[i].setMap(null) // deletes other marker
           markers[i] = marker
@@ -150,6 +148,17 @@ const Map = () => {
   React.useEffect(() => {
     const [center, zoom] = getMapLocation();
     loader.load().then(() => {
+      const drawRoute = (path, strokeColor, _map, startTime, zIndex) => {
+        const routeMap = new google.maps.Polyline({
+          path,
+          geodesic: true,
+          strokeColor,
+          strokeOpacity: 1,
+          strokeWeight: 3,
+        })
+        routeMap.setMap(_map)
+        drawMarker(path[0], Start, _map, `Route starts ${startTime}`, `<div style='color:#000'>Route starts approximately at ${startTime}</div>`, zIndex)
+      }
       map.current = new google.maps.Map(document.getElementById("map"), {
         center,
         zoom,
@@ -157,14 +166,13 @@ const Map = () => {
         disableDefaultUI: true,
         zoomControl: true
       });
-      const routeMap = new google.maps.Polyline({
-        path: route,
-        geodesic: true,
-        strokeColor: "#00F",
-        strokeOpacity: 1.0,
-        strokeWeight: 3,
-      })
-      routeMap.setMap(map.current)
+      drawRoute(r0900,'#81459B',map.current, '9:00 am', 7)
+      drawRoute(r1030,'#4DB949',map.current, '10:30 am')
+      drawRoute(r1115,'#395CAC',map.current, '11:15 am')
+      drawRoute(r1255,'#D2C322',map.current, '12:55 pm')
+      drawRoute(r1340,'#F46D25',map.current, '1:40 pm')
+      drawRoute(r1430,'#E91E25',map.current, '2:30 pm')
+
       getSantaLocation();
       setInterval(getSantaLocation,30 * 1000)
     });

@@ -48,6 +48,28 @@
 #menu a {
     order: 3; 
 }
+#menu #legend {
+    order: 4;
+    display: block;
+    height: inherit;
+    width: 100px;
+    background-color: #fff;
+    padding: 5px;
+    border-radius: 10px;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 10px;
+    display: none;
+    opacity: 0;
+}
+#menu #legend img {
+    height: inherit;
+    width: 100%;
+}
+#menu #legend h4 {
+    font-size:14px;
+    margin: 0;
+    text-align: center;
+}
 #menu #donate {
     background-image: linear-gradient(to top, #138123, #27d850);
     animation: showButton 1s 5.5s forwards;
@@ -63,5 +85,9 @@
     #menu button {
         padding: 15px 20px;
         font-size: 18px;
+    }
+    #menu #legend {
+        display: block;
+        animation: showButton 1s 6s forwards;
     }
 }
