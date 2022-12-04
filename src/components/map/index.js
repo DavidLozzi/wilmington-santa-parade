@@ -47,8 +47,12 @@ const Map = () => {
     }
       const santaData = await API.graphql(graphqlOperation(byDate, options));
       const santaLocations = santaData.data.byDate.items;
-      setSantaProgress(santaLocations);
-      console.log('got', santaLocations.length, 'locations for Santa 🎅')
+      if(santaLocations.length > 0 && new Date(santaLocations[0].createdAt).toDateString() === new Date().toDateString()) {
+        setSantaProgress(santaLocations);
+        console.log('got', santaLocations.length, 'locations for Santa 🎅')
+      } else {
+        console.log('no santa today')
+      }
     } catch(ex) {
       console.error('getSantaLocation', ex);
       Analytics.record({ name: 'Get Santa Error', attributes: { ex } })
