@@ -13,6 +13,7 @@ export const onCreateSantaLocation = /* GraphQL */ `
       sort
       createdAt
       updatedAt
+      __typename
     }
   }
 `;
@@ -28,6 +29,7 @@ export const onUpdateSantaLocation = /* GraphQL */ `
       sort
       createdAt
       updatedAt
+      __typename
     }
   }
 `;
@@ -43,6 +45,7 @@ export const onDeleteSantaLocation = /* GraphQL */ `
       sort
       createdAt
       updatedAt
+      __typename
     }
   }
 `;

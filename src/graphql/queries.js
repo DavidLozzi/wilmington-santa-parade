@@ -11,6 +11,7 @@ export const getSantaLocation = /* GraphQL */ `
       sort
       createdAt
       updatedAt
+      __typename
     }
   }
 `;
@@ -29,8 +30,10 @@ export const listSantaLocations = /* GraphQL */ `
         sort
         createdAt
         updatedAt
+        __typename
       }
       nextToken
+      __typename
     }
   }
 `;
@@ -59,8 +62,10 @@ export const byDate = /* GraphQL */ `
         sort
         createdAt
         updatedAt
+        __typename
       }
       nextToken
+      __typename
     }
   }
 `;
