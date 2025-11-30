@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, Auth, graphqlOperation } from 'aws-amplify';
 import { Analytics } from '../../analytics';
 import { createSantaLocation } from '../../graphql/mutations';
 import { byDate } from '../../graphql/queries';
@@ -12,7 +12,17 @@ const STATUS = {
 
 const TRACK = {
   ENABLED: 'Stop Auto Tracking',
-  DISABLED: 'Enable Auto Tracking'
+  DISABLED: 'Start Auto Tracking'
+}
+
+const MAX_LOCATIONS_DISPLAYED = 10;
+
+const normalizeLocations = (items) => {
+  return (items || [])
+    .filter((item) => item && item.date && !Number.isNaN(Date.parse(item.date)))
+    .slice()
+    .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+    .slice(0, MAX_LOCATIONS_DISPLAYED);
 }
 
 const Track = () => {
@@ -22,39 +32,102 @@ const Track = () => {
   const [autoTrack, setAutoTrack] = useState(TRACK.DISABLED);
   const autoTrackInterval = useRef()
 
+  const formatErrorMessage = (error, fallback) => {
+    if (!error) {
+      return fallback;
+    }
+    const messageFromError =
+      error?.message ||
+      error?.errors?.[0]?.message ||
+      error?.errors?.[0]?.originalError?.message ||
+      error?.toString?.();
+    if (messageFromError?.toLowerCase().includes('401')) {
+      return 'Authentication expired or API key is invalid. Refresh the API key (amplify pull) or login again.';
+    }
+    return messageFromError || fallback;
+  }
+
+  const handleAuthError = (error) => {
+    console.error('auth error', error);
+    const errorMessage = formatErrorMessage(error, 'Authentication required. Please login again.');
+    Analytics.record({ name: 'auth error', attributes: { ex: errorMessage } });
+    if (autoTrackInterval.current) {
+      clearInterval(autoTrackInterval.current);
+      autoTrackInterval.current = null;
+    }
+    setAutoTrack(TRACK.DISABLED);
+    setStatus(STATUS.DONE);
+    setMessage(errorMessage);
+  }
+
+  const ensureAuthenticated = async (bypassCache = false) => {
+    try {
+      await Auth.currentAuthenticatedUser({ bypassCache });
+      return true;
+    } catch (authError) {
+      handleAuthError(authError);
+      return false;
+    }
+  }
+
+  const callApi = async (operation, requireUser = false) => {
+    if (requireUser) {
+      const authed = await ensureAuthenticated(true);
+      if (!authed) {
+        throw new Error('Authentication required');
+      }
+    }
+    try {
+      return await API.graphql({ ...operation, authMode: 'API_KEY' });
+    } catch (apiError) {
+      const errorMessage = formatErrorMessage(apiError, 'An error occurred.');
+      console.warn('API request failed', apiError);
+      if (requireUser) {
+        handleAuthError(apiError);
+      } else {
+        setMessage(`Oops an error occurred retrieving your locations. ${errorMessage}`);
+      }
+      throw apiError;
+    }
+  }
+
   const getAllLocations = async () => {
     try {
       const options = {
         sort: 'yes',
         sortDirection: 'DESC',
-        limit: 10
+        limit: MAX_LOCATIONS_DISPLAYED
       }
 
-      const santaData = await API.graphql(graphqlOperation(byDate, options));
+      const operation = graphqlOperation(byDate, options);
+      const santaData = await callApi(operation);
       const santaLocations = santaData.data.byDate?.items;
-      setLocations(santaLocations || []);
-      console.log('got', santaLocations.length, 'locations for Santa 🎅')
+      const normalizedLocations = normalizeLocations(santaLocations);
+      setLocations(normalizedLocations);
+      console.log('got', normalizedLocations.length, 'locations for Santa 🎅')
       setMessage('')
     } catch (ex) {
       console.error('getSantaLocation', ex);
-      Analytics.record({ name: 'get locations error', attributes: { ex } })
-      if (ex?.errors?.length > 0) {
-        setMessage(`Oops an error occurred retrieving your locations. ${ex.errors[0].message}`)
-      } else {
-        setMessage('An error occurred.')
-      }
+      const readable = formatErrorMessage(ex, 'An error occurred.');
+      Analytics.record({ name: 'get locations error', attributes: { ex: readable } })
+      setMessage(`Oops an error occurred retrieving your locations. ${readable}`)
     }
   }
 
   const getLocation = () => {
-    setMessage('Retrieving location')
-    setStatus(STATUS.PENDING)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(getPosition)
-    } else {
-      console.error('geolocation is not supported');
-      setMessage('Cannot retrieve location');
-    }
+    ensureAuthenticated().then((authed) => {
+      if (!authed) {
+        return;
+      }
+      setMessage('Retrieving location')
+      setStatus(STATUS.PENDING)
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(getPosition)
+      } else {
+        console.error('geolocation is not supported');
+        setMessage('Cannot retrieve location');
+      }
+    });
   }
 
   const getPosition = async (position) => {
@@ -68,15 +141,17 @@ const Track = () => {
         lng: longitude,
         date: new Date().toGMTString()
       }
-      await API.graphql(graphqlOperation(createSantaLocation, { input: location }))
+      const operation = graphqlOperation(createSantaLocation, { input: location })
+      await callApi(operation, true)
       getAllLocations()
       setMessage('Location saved!')
       setStatus(STATUS.DONE)
       setTimeout(() => setMessage(''), 5000)
     } catch (ex) {
-      Analytics.record({ name: 'get position error', attributes: { ex } })
+      const readable = formatErrorMessage(ex, 'Roast my chestnuts, there was an error.')
+      Analytics.record({ name: 'get position error', attributes: { ex: readable } })
       getAllLocations()
-      setMessage('Roast my chestnuts, there was an error.')
+      setMessage(readable)
       console.error(ex)
       setStatus(STATUS.DONE)
     }
@@ -94,11 +169,16 @@ const Track = () => {
       setAutoTrack(TRACK.DISABLED);
       autoTrackInterval.current = null;
     } else {
-      setAutoTrack(TRACK.ENABLED);
-      getLocation()
-      autoTrackInterval.current = setInterval(() => {
+      ensureAuthenticated().then((authed) => {
+        if (!authed) {
+          return;
+        }
+        setAutoTrack(TRACK.ENABLED);
         getLocation()
-      }, 30 * 1000)
+        autoTrackInterval.current = setInterval(() => {
+          getLocation()
+        }, 30 * 1000)
+      })
     }
   }
 
@@ -116,7 +196,11 @@ const Track = () => {
   // }
 
   useEffect(() => {
-    getAllLocations();
+    ensureAuthenticated().then((authed) => {
+      if (authed) {
+        getAllLocations();
+      }
+    })
   }, [])
 
   return (
@@ -124,11 +208,16 @@ const Track = () => {
       <h3>Press below to Track your current location.</h3>
       <button onClick={track_click} disabled={status !== STATUS.DONE}>Track</button>
       <button onClick={autotrack_click} disabled={status !== STATUS.DONE}>{autoTrack}</button>
+      {autoTrack === TRACK.ENABLED && (
+        <p className="auto-track-note">
+          Keep the device on and stay on this page. It will automatically update your location.
+        </p>
+      )}
       <div id="message">{message}</div>
       <div id="list">
         <h4>{locations.length} most recent tracked locations:</h4>
         {locations.map(l =>
-          <div key={l.date} className="location">{new Date(l.date).toDateString()} - {l.lat.toString().substring(0, 6)} x {l.lng.toString().substring(0, 7)}</div>
+          <div key={l.id || l.date} className="location">{new Date(l.date).toDateString()} - {l.lat.toString().substring(0, 6)} x {l.lng.toString().substring(0, 7)}</div>
         )}
       </div>
       {/* <h3 id="photo">Upload a Photo</h3>

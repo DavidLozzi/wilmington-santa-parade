@@ -2,5 +2,5 @@
   "AppSyncApiName": "wilmingtonsantaparad",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
-  "AuthModeLastUpdated": "2022-12-02T20:48:24.464Z"
+  "AuthModeLastUpdated": "2025-11-30T21:44:12.597Z"
 }

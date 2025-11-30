@@ -23,8 +23,12 @@
     width: 30px;
 }
 
-#about .legend {
-    width: 100px;
+#about .about-legend {
+    display: inline-flex;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 2px 7px 0 #2E0505;
+    padding: 8px 12px;
     float: right;
     margin-left: 10px;
     margin-bottom: 10px;

@@ -1,0 +1,27 @@
+#resetPassword {
+  max-width: 320px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+#resetPassword label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+#resetPassword input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+#resetPassword button {
+  margin-top: 8px;
+}
+
+#resetPassword #message {
+  margin-top: 12px;
+  min-height: 20px;
+}
+

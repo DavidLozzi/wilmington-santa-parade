@@ -10,7 +10,7 @@ import r1340 from "../../routes/1340";
 import r1430 from "../../routes/1430";
 import { byDate } from "../../graphql/queries";
 import SantaHead from '../../assets/santa_head.png';
-import Start from '../../assets/start.png';
+import GreenFlag from '../../assets/green-flag.svg';
 import Past from '../../assets/past.png';
 import TargetSanta from '../../assets/target_santa.png';
 import './index.css';
@@ -23,8 +23,11 @@ const markers = []
 
 const Map = () => {
   const [santaProgress, setSantaProgress] = useState([]);
+  const [isSantaOffscreen, setIsSantaOffscreen] = useState(false);
   const map = React.useRef();
+  const mapListeners = React.useRef([]);
   const santaPath = React.useRef();
+  const santaLocationRef = React.useRef(null);
 
   const getMapLocation = () => {
       const { availWidth } = window.screen;
@@ -86,6 +89,30 @@ const Map = () => {
     return marker;
   }
 
+  const checkSantaVisibility = React.useCallback(() => {
+    if (!map.current || !santaLocationRef.current) {
+      setIsSantaOffscreen(false);
+      return;
+    }
+
+    if (typeof google === 'undefined' || !google.maps) {
+      return;
+    }
+
+    const bounds = map.current.getBounds();
+    if (!bounds) {
+      return;
+    }
+
+    const santaPosition = new google.maps.LatLng(santaLocationRef.current.lat, santaLocationRef.current.lng);
+    const isInside = bounds.contains(santaPosition);
+
+    setIsSantaOffscreen(prev => {
+      const next = !isInside;
+      return prev === next ? prev : next;
+    });
+  }, []);
+
   React.useEffect(() => {
 		const drawSantasPath = () => {
       santaPath.current?.setMap(null)
@@ -122,6 +149,7 @@ const Map = () => {
 
     if (santaProgress?.length > 0) {
       const santa = santaProgress[0]
+      santaLocationRef.current = santa;
       const marker = drawMarker(santa, SantaHead, map.current, new Date(santa.date).toLocaleTimeString(), `<div style='color:#000'>Updated ${new Date(santa.date).toLocaleTimeString()}</div>`, 8)
 
 			if(markers.length > 0) {
@@ -145,23 +173,41 @@ const Map = () => {
       }
 
       drawSantasPath()
+      checkSantaVisibility();
+    } else {
+      santaLocationRef.current = null;
+      setIsSantaOffscreen(false);
     }
-  }, [santaProgress])
+  }, [santaProgress, checkSantaVisibility])
 
 
   React.useEffect(() => {
     const [center, zoom] = getMapLocation();
     loader.load().then(() => {
-      const drawRoute = (path, strokeColor, _map, startTime, zIndex) => {
+      const drawRoute = (path, strokeColor, _map, startTime, zIndex = 1) => {
         const routeMap = new google.maps.Polyline({
           path,
           geodesic: true,
           strokeColor,
           strokeOpacity: 1,
           strokeWeight: 3,
+          // Arrow icon repeats along route path to show direction of travel.
+          icons: [
+            {
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                scale: 2,
+                strokeOpacity: 1,
+                strokeColor,
+              },
+              offset: '5%',
+              repeat: '120px',
+            },
+          ],
+          zIndex,
         })
         routeMap.setMap(_map)
-        drawMarker(path[0], Start, _map, `Route starts ${startTime}`, `<div style='color:#000'>Route starts approximately at ${startTime}</div>`, zIndex)
+        drawMarker(path[0], GreenFlag, _map, `Route starts ${startTime}`, `<div style='color:#000'>Route starts approximately at ${startTime}</div>`, zIndex)
       }
       map.current = new google.maps.Map(document.getElementById("map"), {
         center,
@@ -170,12 +216,18 @@ const Map = () => {
         disableDefaultUI: true,
         zoomControl: true
       });
-      drawRoute(r0900,'#81459B',map.current, '9:00 am', 7)
-      drawRoute(r1030,'#4DB949',map.current, '10:30 am')
-      drawRoute(r1115,'#395CAC',map.current, '11:15 am')
-      drawRoute(r1255,'#D2C322',map.current, '12:55 pm')
-      drawRoute(r1340,'#F46D25',map.current, '1:40 pm')
-      drawRoute(r1430,'#E91E25',map.current, '2:30 pm')
+
+      drawRoute(r0900,'#81459B',map.current, '8:00 am', 10)
+      drawRoute(r1030,'#4DB949',map.current, '10:00 am', 8)
+      drawRoute(r1115,'#395CAC',map.current, '10:45 am', 6)
+      drawRoute(r1255,'#D2C322',map.current, '12:30 pm', 4)
+      drawRoute(r1340,'#F46D25',map.current, '1:15 pm', 2)
+      drawRoute(r1430,'#E91E25',map.current, '2:00 pm')
+
+      mapListeners.current = ['idle', 'dragend', 'zoom_changed'].map(eventName =>
+        map.current.addListener(eventName, checkSantaVisibility)
+      );
+      checkSantaVisibility();
 
       getSantaLocation();
       setInterval(getSantaLocation,30 * 1000)
@@ -188,7 +240,7 @@ const Map = () => {
     <>
       <div id="map" ref={map} />
       { santaProgress?.length > 0 && <><div id="status">Santa's last location updated: {new Date().toLocaleTimeString()}</div> 
-			<button id="targetSanta" onClick={goToSanta}><img src={TargetSanta} alt="Find santa on the map"  /></button></>}
+			<button id="targetSanta" className={isSantaOffscreen ? 'offscreen' : undefined} onClick={goToSanta}><img src={TargetSanta} alt="Find santa on the map"  /></button></>}
     </>
   );
 }

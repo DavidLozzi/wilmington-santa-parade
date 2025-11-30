@@ -5,7 +5,7 @@ const SantaImage = () => {
 
   return <div id="hero">
     <img src={SantaPng} id="logo" alt="Wilmington Santa Parade Logo" />
-    <h2>December 3rd starting at 8:30am</h2>
+    <h2>December 7th starting at 8:00 AM</h2>
   </div>
 }
 
