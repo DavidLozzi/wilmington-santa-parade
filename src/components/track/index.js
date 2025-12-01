@@ -16,13 +16,81 @@ const TRACK = {
 }
 
 const MAX_LOCATIONS_DISPLAYED = 10;
+const MAX_FETCHED_LOCATIONS = 50;
+const PARADE_TIME_ZONE = 'America/New_York';
+
+const getParadeStartOfDayIso = () => {
+  const now = new Date();
+  const paradeNow = new Date(now.toLocaleString('en-US', { timeZone: PARADE_TIME_ZONE }));
+  const offsetMs = paradeNow.getTime() - now.getTime();
+  paradeNow.setHours(0, 0, 0, 0);
+  const paradeMidnightUtc = new Date(paradeNow.getTime() - offsetMs);
+  return paradeMidnightUtc.toISOString();
+}
+
+const getTimestamp = (location) => {
+  if (!location) {
+    return null;
+  }
+  const candidates = [location.date, location.createdAt, location.updatedAt];
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+    const parsed = Date.parse(candidate);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+const dedupeLocations = (items) => {
+  const seen = new Map();
+  (items || []).forEach((item) => {
+    if (!item) {
+      return;
+    }
+    const key = item.id || `${item.lat}-${item.lng}-${item.date}`;
+    if (!seen.has(key)) {
+      seen.set(key, item);
+      return;
+    }
+    const existing = seen.get(key);
+    const existingTimestamp = getTimestamp(existing);
+    const incomingTimestamp = getTimestamp(item);
+    if (incomingTimestamp !== null && incomingTimestamp > existingTimestamp) {
+      seen.set(key, item);
+    }
+  });
+  return Array.from(seen.values());
+}
+
+const formatDisplayDate = (location) => {
+  const timestamp = getTimestamp(location);
+  if (timestamp === null) {
+    return 'Invalid date';
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: PARADE_TIME_ZONE,
+    timeZoneName: 'short'
+  }).format(new Date(timestamp));
+}
 
 const normalizeLocations = (items) => {
-  return (items || [])
-    .filter((item) => item && item.date && !Number.isNaN(Date.parse(item.date)))
-    .slice()
-    .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
-    .slice(0, MAX_LOCATIONS_DISPLAYED);
+  return dedupeLocations(items)
+    .map((item) => ({ item, timestamp: getTimestamp(item) }))
+    .filter(({ item, timestamp }) => item && timestamp !== null)
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, MAX_LOCATIONS_DISPLAYED)
+    .map(({ item }) => item);
 }
 
 const Track = () => {
@@ -93,19 +161,33 @@ const Track = () => {
 
   const getAllLocations = async () => {
     try {
+      const startOfDayIso = getParadeStartOfDayIso();
       const options = {
         sort: 'yes',
         sortDirection: 'DESC',
-        limit: MAX_LOCATIONS_DISPLAYED
-      }
+        limit: MAX_FETCHED_LOCATIONS,
+        date: startOfDayIso ? { ge: startOfDayIso } : undefined
+      };
 
       const operation = graphqlOperation(byDate, options);
       const santaData = await callApi(operation);
-      const santaLocations = santaData.data.byDate?.items;
-      const normalizedLocations = normalizeLocations(santaLocations);
+      const santaLocations = santaData.data.byDate?.items || [];
+      let normalizedLocations = normalizeLocations(santaLocations);
+
+      if (normalizedLocations.length === 0) {
+        const fallbackOperation = graphqlOperation(byDate, {
+          sort: 'yes',
+          sortDirection: 'DESC',
+          limit: MAX_FETCHED_LOCATIONS
+        });
+        const fallbackResponse = await callApi(fallbackOperation);
+        const fallbackItems = fallbackResponse.data.byDate?.items || [];
+        normalizedLocations = normalizeLocations(fallbackItems);
+      }
+
       setLocations(normalizedLocations);
-      console.log('got', normalizedLocations.length, 'locations for Santa 🎅')
-      setMessage('')
+      console.log('got', normalizedLocations.length, 'locations for Santa 🎅');
+      setMessage('');
     } catch (ex) {
       console.error('getSantaLocation', ex);
       const readable = formatErrorMessage(ex, 'An error occurred.');
@@ -136,10 +218,12 @@ const Track = () => {
       const { latitude, longitude } = position.coords
       console.log(latitude, longitude)
       setMessage('Location retrieved...')
+      const now = new Date();
       const location = {
         lat: latitude,
         lng: longitude,
-        date: new Date().toGMTString()
+        date: now.toISOString(),
+        sort: 'yes'
       }
       const operation = graphqlOperation(createSantaLocation, { input: location })
       await callApi(operation, true)
@@ -201,6 +285,7 @@ const Track = () => {
         getAllLocations();
       }
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -210,14 +295,14 @@ const Track = () => {
       <button onClick={autotrack_click} disabled={status !== STATUS.DONE}>{autoTrack}</button>
       {autoTrack === TRACK.ENABLED && (
         <p className="auto-track-note">
-          Keep the device on and stay on this page. It will automatically update your location.
+          Keep the device on and stay on this page. It will automatically update your location every 1 minute.
         </p>
       )}
       <div id="message">{message}</div>
       <div id="list">
         <h4>{locations.length} most recent tracked locations:</h4>
         {locations.map(l =>
-          <div key={l.id || l.date} className="location">{new Date(l.date).toDateString()} - {l.lat.toString().substring(0, 6)} x {l.lng.toString().substring(0, 7)}</div>
+          <div key={l.id || l.date || getTimestamp(l)} className="location">{formatDisplayDate(l)} - {l.lat.toString().substring(0, 6)} x {l.lng.toString().substring(0, 7)}</div>
         )}
       </div>
       {/* <h3 id="photo">Upload a Photo</h3>

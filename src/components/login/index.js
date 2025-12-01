@@ -32,9 +32,15 @@ const Login = ({ setStatus }) => {
             Analytics.record({ name: 'Login fail', attributes: { ex } })
         }
     }
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault()
+            signIn()
+        }
+    }
     return ( <div id="login">
         <h2>Login to share your location</h2>
-        <input name="password" type='password' value={password} onChange={e => setPassword(e.target.value)} />
+        <input name="password" type='password' value={password} onChange={e => setPassword(e.target.value)} onKeyDown={handleKeyDown} />
         <button onClick={signIn}>Login</button>
         <div id="message">{message}</div>
         </div>
