@@ -19,20 +19,21 @@ const MAX_LOCATIONS_DISPLAYED = 10;
 const MAX_FETCHED_LOCATIONS = 50;
 const PARADE_TIME_ZONE = 'America/New_York';
 
-const getParadeStartOfDayIso = () => {
+const getParadeDateString = () => {
   const now = new Date();
-  const paradeNow = new Date(now.toLocaleString('en-US', { timeZone: PARADE_TIME_ZONE }));
-  const offsetMs = paradeNow.getTime() - now.getTime();
-  paradeNow.setHours(0, 0, 0, 0);
-  const paradeMidnightUtc = new Date(paradeNow.getTime() - offsetMs);
-  return paradeMidnightUtc.toISOString();
+  return new Intl.DateTimeFormat('en-CA', { 
+    timeZone: PARADE_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(now);
 }
 
 const getTimestamp = (location) => {
   if (!location) {
     return null;
   }
-  const candidates = [location.date, location.createdAt, location.updatedAt];
+  const candidates = [location.createdAt, location.updatedAt];
   for (const candidate of candidates) {
     if (!candidate) {
       continue;
@@ -161,29 +162,18 @@ const Track = () => {
 
   const getAllLocations = async () => {
     try {
-      const startOfDayIso = getParadeStartOfDayIso();
+      const todayDate = getParadeDateString();
       const options = {
         sort: 'yes',
         sortDirection: 'DESC',
         limit: MAX_FETCHED_LOCATIONS,
-        date: startOfDayIso ? { ge: startOfDayIso } : undefined
+        date: { eq: todayDate }
       };
 
       const operation = graphqlOperation(byDate, options);
       const santaData = await callApi(operation);
       const santaLocations = santaData.data.byDate?.items || [];
-      let normalizedLocations = normalizeLocations(santaLocations);
-
-      if (normalizedLocations.length === 0) {
-        const fallbackOperation = graphqlOperation(byDate, {
-          sort: 'yes',
-          sortDirection: 'DESC',
-          limit: MAX_FETCHED_LOCATIONS
-        });
-        const fallbackResponse = await callApi(fallbackOperation);
-        const fallbackItems = fallbackResponse.data.byDate?.items || [];
-        normalizedLocations = normalizeLocations(fallbackItems);
-      }
+      const normalizedLocations = normalizeLocations(santaLocations);
 
       setLocations(normalizedLocations);
       console.log('got', normalizedLocations.length, 'locations for Santa 🎅');
@@ -218,11 +208,10 @@ const Track = () => {
       const { latitude, longitude } = position.coords
       console.log(latitude, longitude)
       setMessage('Location retrieved...')
-      const now = new Date();
       const location = {
         lat: latitude,
         lng: longitude,
-        date: now.toISOString(),
+        date: getParadeDateString(),
         sort: 'yes'
       }
       const operation = graphqlOperation(createSantaLocation, { input: location })

@@ -20,6 +20,17 @@ const loader = new Loader({
   version: "weekly"
 });
 const markers = []
+const PARADE_TIME_ZONE = 'America/New_York';
+
+const getParadeDateString = () => {
+  const now = new Date();
+  return new Intl.DateTimeFormat('en-CA', { 
+    timeZone: PARADE_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(now);
+}
 
 const Map = () => {
   const [santaProgress, setSantaProgress] = useState([]);
@@ -43,18 +54,40 @@ const Map = () => {
 
   const getSantaLocation = async () => {
     try {
+      const todayDate = getParadeDateString();
       const options = { 
         sort: 'yes',
         sortDirection: 'DESC',
-        limit: 10
-    }
+        limit: 10,
+        date: { eq: todayDate }
+      }
       const santaData = await API.graphql(graphqlOperation(byDate, options));
-      const santaLocations = santaData.data.byDate.items;
-      if(santaLocations.length > 0 && new Date(santaLocations[0].createdAt).toDateString() === new Date().toDateString()) {
-        setSantaProgress(santaLocations);
-        console.log('got', santaLocations.length, 'locations for Santa 🎅')
+      const santaLocations = santaData.data.byDate?.items || [];
+      
+      // Sort by createdAt descending (most recent first) since date field is now just YYYY-MM-DD
+      // Use updatedAt as secondary sort, then id for stable sorting
+      const sortedLocations = [...santaLocations].sort((a, b) => {
+        const aTime = Date.parse(a.createdAt || a.updatedAt || 0);
+        const bTime = Date.parse(b.createdAt || b.updatedAt || 0);
+        if (bTime !== aTime) {
+          return bTime - aTime;
+        }
+        // If timestamps are equal, sort by updatedAt
+        const aUpdated = Date.parse(a.updatedAt || 0);
+        const bUpdated = Date.parse(b.updatedAt || 0);
+        if (bUpdated !== aUpdated) {
+          return bUpdated - aUpdated;
+        }
+        // If still equal, sort by id for stability
+        return (b.id || '').localeCompare(a.id || '');
+      });
+      
+      if (sortedLocations.length > 0) {
+        setSantaProgress(sortedLocations);
+        console.log('got', sortedLocations.length, 'locations for Santa 🎅')
       } else {
         console.log('no santa today')
+        setSantaProgress([]);
       }
     } catch(ex) {
       console.error('getSantaLocation', ex);
@@ -116,8 +149,10 @@ const Map = () => {
   React.useEffect(() => {
 		const drawSantasPath = () => {
       santaPath.current?.setMap(null)
+      // Path needs to be in chronological order (oldest to newest) for correct route display
+      const pathInOrder = [...santaProgress].reverse();
 			const routeMap = new google.maps.Polyline({
-			  path: santaProgress,
+			  path: pathInOrder,
 			  geodesic: true,
 			  strokeColor: "#ED252C",
 			  strokeOpacity: 0.6,
@@ -150,7 +185,9 @@ const Map = () => {
     if (santaProgress?.length > 0) {
       const santa = santaProgress[0]
       santaLocationRef.current = santa;
-      const marker = drawMarker(santa, SantaHead, map.current, new Date(santa.date).toLocaleTimeString(), `<div style='color:#000'>Updated ${new Date(santa.date).toLocaleTimeString()}</div>`, 8)
+      const timestamp = santa.createdAt || santa.updatedAt;
+      const timeString = timestamp ? new Date(timestamp).toLocaleTimeString() : 'Unknown time';
+      const marker = drawMarker(santa, SantaHead, map.current, timeString, `<div style='color:#000'>Updated ${timeString}</div>`, 8)
 
 			if(markers.length > 0) {
 				markers[0].setMap(null) // deletes other marker
@@ -162,7 +199,9 @@ const Map = () => {
       // markers for where he was
       for(let i = 1; i < santaProgress.length; i+=2) {
         const arrow = santaProgress[i]
-        const marker = drawMarker(arrow, Past, map.current, new Date(arrow.date).toLocaleTimeString(),  `<div style='color:#000'>Santa was here ${new Date(arrow.date).toLocaleTimeString()}</div>`)
+        const arrowTimestamp = arrow.createdAt || arrow.updatedAt;
+        const arrowTimeString = arrowTimestamp ? new Date(arrowTimestamp).toLocaleTimeString() : 'Unknown time';
+        const marker = drawMarker(arrow, Past, map.current, arrowTimeString,  `<div style='color:#000'>Santa was here ${arrowTimeString}</div>`)
 
         if(markers.length > i) {
           markers[i].setMap(null) // deletes other marker
